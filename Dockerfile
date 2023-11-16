@@ -4,12 +4,12 @@ RUN set -eux; apt-get update ; apt-get install -y curl
 
 FROM installer as kubectl
 RUN set -eux ; \
-  curl -LfO "https://dl.k8s.io/release/v1.28.3/bin/linux/${TARGETARCH}/kubectl" ; \
-  chmod +x ./kubectl
+  curl -Lf -o /kubectl "https://dl.k8s.io/release/v1.28.3/bin/linux/${TARGETARCH}/kubectl" ; \
+  chmod +x /kubectl
 
 FROM ubuntu:22.04
 
-COPY --from=installer /kubectl /usr/local/bin
+COPY --from=kubectl /kubectl /usr/local/bin
 
 WORKDIR /app
 COPY app .
