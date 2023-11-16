@@ -10,9 +10,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: k8s-unreachable-node-cleaner
 rules:
-  - apiGroups: ["core"]
-    resources: ["node"]
-    verbs: ["get", "delete"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "delete"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -49,6 +49,7 @@ spec:
       labels:
         app.kubernetes.io/name: k8s-unreachable-node-cleaner
     spec:
+      serviceAccountName: k8s-unreachable-node-cleaner
       containers:
         - name: k8s-unreachable-node-cleaner
           image: ghcr.io/matti/k8s-unreachable-node-cleaner:baa7408da95655b70981b71792e15764d001fa36
