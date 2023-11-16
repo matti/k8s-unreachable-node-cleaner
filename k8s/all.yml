@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-unreachable-node-cleaner
+  namespace: kube-system
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-unreachable-node-cleaner
+rules:
+  - apiGroups: ["core"]
+    resources: ["node"]
+    verbs: ["get", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-unreachable-node-cleaner
+roleRef:
+  kind: ClusterRole
+  name: k8s-unreachable-node-cleaner
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: k8s-unreachable-node-cleaner
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-unreachable-node-cleaner
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: k8s-unreachable-node-cleaner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: k8s-unreachable-node-cleaner
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: k8s-unreachable-node-cleaner
+    spec:
+      containers:
+        - name: k8s-unreachable-node-cleaner
+          image: ghcr.io/matti/k8s-unreachable-node-cleaner:baa7408da95655b70981b71792e15764d001fa36
+          args:
+            - "5"
+          resources:
+            requests:
+              cpu: 1m
+              memory: 32Mi
+            limits:
+              cpu: 1000m
+              memory: 256Mi
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 10
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 10
