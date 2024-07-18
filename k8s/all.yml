@@ -35,7 +35,6 @@ metadata:
   labels:
     app.kubernetes.io/name: k8s-unreachable-node-cleaner
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: k8s-unreachable-node-cleaner
