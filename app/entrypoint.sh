@@ -43,6 +43,7 @@ while true; do
       if [ "$node_now_unreachable" == "$node_last_unreachable" ]; then
         echo "$(date) still unreachable $node_now_unreachable, deleting"
         kubectl delete node "$node_now_unreachable" || echo "failed to delete"
+        kubectl delete pods --all-namespaces --field-selector spec.nodeName="$node_now_unreachable" || echo "failed to delete pods"
       fi
     done
   done
