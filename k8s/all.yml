@@ -46,7 +46,7 @@ spec:
       serviceAccountName: k8s-unreachable-node-cleaner
       containers:
         - name: k8s-unreachable-node-cleaner
-          image: ghcr.io/matti/k8s-unreachable-node-cleaner:baa7408da95655b70981b71792e15764d001fa36
+          image: ghcr.io/matti/k8s-unreachable-node-cleaner:latest
           args:
             - "5"
           resources:
