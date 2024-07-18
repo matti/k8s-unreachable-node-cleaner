@@ -28,7 +28,7 @@ subjects:
     namespace: kube-system
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: k8s-unreachable-node-cleaner
   namespace: kube-system
