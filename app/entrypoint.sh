@@ -23,7 +23,7 @@ _shutdown() {
 }
 trap '_shutdown 0' TERM INT
 
-delay=${1:-5}
+delay=${1:-10}
 
 echo "starting with delay: $delay"
 
@@ -34,9 +34,17 @@ done
 
 nodes_last_unreachable=""
 while true; do
-  nodes_now_unreachable=$(
-    kubectl get nodes -o go-template='{{range .items}}{{ $name := .metadata.name }}{{ $tainted := false }}{{range .spec.taints}}{{if eq .key "node.kubernetes.io/unreachable"}}{{ $tainted = true }}{{end}}{{end}}{{if $tainted}}{{$name}}{{"\n"}}{{end}}{{end}}' || true
-  )
+  while true; do
+    nodes_now_unreachable=$(
+      kubectl get nodes -o go-template='{{range .items}}{{ $name := .metadata.name }}{{ $tainted := false }}{{range .spec.taints}}{{if eq .key "node.kubernetes.io/unreachable"}}{{ $tainted = true }}{{end}}{{end}}{{if $tainted}}{{$name}}{{"\n"}}{{end}}{{end}}' || true
+    )
+
+    [[ -n "$nodes_now_unreachable" ]] && break
+
+    nodes_last_unreachable=""
+    echo "$(date) no unreachable nodes"
+    sleep "$delay"
+  done
 
   for node_now_unreachable in $nodes_now_unreachable; do
     for node_last_unreachable in $nodes_last_unreachable; do
@@ -46,13 +54,9 @@ while true; do
         kubectl delete pods --all-namespaces --field-selector spec.nodeName="$node_now_unreachable" || echo "failed to delete pods"
       fi
     done
+
+    nodes_last_unreachable=""
   done
-
-  sleep "$delay"
-
-  nodes_now_unreachable=$(
-    kubectl get nodes -o go-template='{{range .items}}{{ $name := .metadata.name }}{{ $tainted := false }}{{range .spec.taints}}{{if eq .key "node.kubernetes.io/unreachable"}}{{ $tainted = true }}{{end}}{{end}}{{if $tainted}}{{$name}}{{"\n"}}{{end}}{{end}}' || true
-  )
 
   for node_now_unreachable in $nodes_now_unreachable; do
     nodes_last_unreachable="$nodes_last_unreachable $node_now_unreachable"
