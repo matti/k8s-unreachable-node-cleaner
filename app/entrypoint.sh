@@ -47,6 +47,7 @@ while true; do
     sleep "$delay"
   done
 
+  nodes_still_unreachable=""
   for node_now_unreachable in $nodes_now_unreachable; do
     echo "$(date) node $node_now_unreachable is unreachable"
     for node_last_unreachable in $nodes_last_unreachable; do
@@ -54,13 +55,15 @@ while true; do
         echo "$(date) node is $node_now_unreachable the second time, deleting"
         kubectl delete node "$node_now_unreachable" || echo "failed to delete"
         kubectl delete pods --all-namespaces --field-selector spec.nodeName="$node_now_unreachable" || echo "failed to delete pods"
+      else
+        nodes_still_unreachable="$nodes_still_unreachable $node_now_unreachable"
       fi
     done
 
     nodes_last_unreachable=""
   done
 
-  for node_now_unreachable in $nodes_now_unreachable; do
+  for node_now_unreachable in $nodes_still_unreachable; do
     nodes_last_unreachable="$nodes_last_unreachable $node_now_unreachable"
     echo "$(date) node $node_now_unreachable marked as last unreachable"
   done
