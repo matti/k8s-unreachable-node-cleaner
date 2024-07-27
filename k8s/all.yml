@@ -52,7 +52,10 @@ spec:
           resources:
             requests:
               cpu: 1m
-              memory: 32Mi
+              memory: 16Mi
             limits:
               cpu: 1000m
               memory: 256Mi
+          env:
+            - name: K8S_UNREACHABLE_NODE_CLEANER_DELAY
+              value: "10"
