@@ -49,16 +49,17 @@ while true; do
 
   nodes_still_unreachable=""
   for node_now_unreachable in $nodes_now_unreachable; do
-    echo "$(date) node $node_now_unreachable is unreachable"
-    for node_last_unreachable in $nodes_last_unreachable; do
-      if [ "$node_now_unreachable" == "$node_last_unreachable" ]; then
-        echo "$(date) node is $node_now_unreachable the second time, deleting"
-        kubectl delete node "$node_now_unreachable" || echo "failed to delete"
-        kubectl delete pods --all-namespaces --field-selector spec.nodeName="$node_now_unreachable" || echo "failed to delete pods"
-      else
+    case "$nodes_last_unreachable" in
+      *"$node_now_unreachable"*)
+        echo "$(date) node $node_now_unreachable is unreachable after delay, deleting"
+        kubectl delete node "$node_now_unreachable" || echo "failed to delete node $node_now_unreachable"
+        kubectl delete pods --all-namespaces --field-selector spec.nodeName="$node_now_unreachable" || echo "failed to delete pods from node $node_now_unreachable"
+      ;;
+      *)
+        echo "$(date) node $node_now_unreachable added to still unreachable"
         nodes_still_unreachable="$nodes_still_unreachable $node_now_unreachable"
-      fi
-    done
+      ;;
+    esac
 
     nodes_last_unreachable=""
   done
